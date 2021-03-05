@@ -4,10 +4,11 @@ import busio
 from adafruit_motor import servo
 from adafruit_pca9685 import PCA9685
 
-from data import servos
+from .data import servos
 
 freq = 50
 active_servos = [0, 1]
+servo_range = [0, 180] # not needed as adafruit library handles this
 
 class Servo:
 	def __init__(self):
@@ -26,13 +27,17 @@ class Servo:
 			servo_dict[channel] = servo.Servo(self.pca.channels[servos[channel]], min_pulse=580, max_pulse=2480)
 		return servo_dict
 		
-	def setServoAngle(self, channel, angle):
+	def set_servo_angle(self, channel, angle):
 		channel = int(channel)
 		if channel in active_servos:
-			print(f"setting servo {channel} using pca channel {servos[channel]} to {angle} degrees")
+			# print(f"setting servo {channel} using pca channel {servos[channel]} to {angle} degrees")
 			self.servo_dict[channel].angle = angle
 		else:
 			print(f"Incorrect servo channel passed, use {active_servos[0]}-{active_servos[1]}")
+
+	def destroy(self):
+		for i in active_servos:
+			self.servo_dict[i].angle = 90
 
 
 if __name__ == '__main__':
@@ -40,8 +45,9 @@ if __name__ == '__main__':
 	pwm = Servo()
 	while True:
 		try:
-			pwm.setServoAngle(0, 120)
-			pwm.setServoAngle(1, 120)
+			pwm.set_servo_angle(0, 120)
+			pwm.set_servo_angle(1, 120)
 		except KeyboardInterrupt:
+			pwm.destroy()
 			print('\n Ended')
 			break

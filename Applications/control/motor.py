@@ -6,7 +6,7 @@ import busio
 from adafruit_motor.motor import DCMotor
 from adafruit_pca9685 import PCA9685
 
-from data import motors
+from .data import motors
 
 freq = 50
 

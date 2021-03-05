@@ -1,0 +1,9 @@
+adafruit-circuitpython-busdevice     
+adafruit-circuitpython-motor     
+adafruit-circuitpython-pca9685   
+adafruit-circuitpython-pypixelbuf     
+adafruit-circuitpython-register     
+adafruit-circuitpython-servokit
+imutils
+"pycamera[array]"
+opencv-contrib-python==4.1.0.25
