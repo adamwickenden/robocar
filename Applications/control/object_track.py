@@ -1,12 +1,14 @@
 import imutils
 import cv2
 
-haar = '/home/pi/Documents/Projects/RoboCar/Applications/control/haar_face.xml'
+from .config import control
+
+haar = control / 'haar_face.xml'
 
 class ObjectTrack():
     def __init__(self, haar=haar):
         # Initialise a haar face detector
-        self.detector = cv2.CascadeClassifier(haar)
+        self.detector = cv2.CascadeClassifier(str(haar))
 
     # Update function that processes single frames
     def update(self, frame, prev_frame):

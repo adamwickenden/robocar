@@ -7,3 +7,4 @@ adafruit-circuitpython-servokit
 imutils
 "pycamera[array]"
 opencv-contrib-python==4.1.0.25
+pathlib
