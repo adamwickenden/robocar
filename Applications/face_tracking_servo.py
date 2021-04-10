@@ -12,6 +12,7 @@ import signal
 import time
 import sys
 import cv2
+import sys
 
 # We use var.value as we need to acces variables like this for threading
 
@@ -27,7 +28,7 @@ def signal_handler(sig, frame):
 
 
 # Thread 1 object tracking
-def track_object(obj_x, obj_y, centre_x, centre_y):
+def track_object(obj_x, obj_y, centre_x, centre_y, a,b):
     """
     Controls the facial inference and returns a rectangle to draw on a cv2 frame
     """
@@ -57,42 +58,54 @@ def track_object(obj_x, obj_y, centre_x, centre_y):
         if rect is not None:
             (x,y,w,h) = rect
             cv2.rectangle(img, (x,y), (x+w, y+h), (0,255,0), 2)
+
+        cv2.putText(img, f'x:{obj_x.value}', (0,10), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
+        cv2.putText(img, f'pan: {a.value}', (0,25), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
+        cv2.putText(img, f'y:{obj_y.value}', (100, 10), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
+        cv2.putText(img, f'tilt:{b.value}', (100,25), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
         
         cv2.imshow("Object Tracking", img)
         cv2.waitKey(1)
 
 
-def pid_feed(out, p, i, d, obj, centre):
-    """
-    PID Process will be instantiated twice, one for panning, one for tilting.
+# def pid_feed(out, p, i, d, obj, centre):
+#     """
+#     PID Process will be instantiated twice, one for panning, one for tilting.
 
-    args:
-        out = servo angle we are going to control
-        p,i,d = PID constants
-        obj = co-ordinate of object in specific axis (x/y etc)
-        centre = centre of frame in specific axis. Used to calculate error in axis
-    """
+#     args:
+#         out = servo angle we are going to control
+#         p,i,d = PID constants
+#         obj = co-ordinate of object in specific axis (x/y etc)
+#         centre = centre of frame in specific axis. Used to calculate error in axis
+#     """
+#     # Init the exit handler
+#     signal.signal(signal.SIGINT, signal_handler)
+
+#     # Create a PID at given start values
+#     p = PID(p.value, i.value, d.value)
+#     p.start()
+
+#     while True:
+#         # Error term
+#         error = centre.value - obj.value
+#         # Calculate PID
+#         out.value =  90 + p.update(error)
+
+
+def axis_map(track, axis, center_min, centre_max, range_min, range_max, shift=1):
     # Init the exit handler
     signal.signal(signal.SIGINT, signal_handler)
 
-    # Create a PID at given start values
-    p = PID(p.value, i.value, d.value)
-    p.start()
-
     while True:
-        # Error term
-        error = centre.value - obj.value
-        # Calculate PID
-        out.value =  90 + p.update(error)
-        print(out.value)
-
-
-def pan_in_range(val, servo_range=[0, 180]):
-    return (val > servo_range[0] and val < servo_range[1])
-
-
-def tilt_in_range(val, servo_range=[90, 180]):
-    return (val > servo_range[0] and val < servo_range[1])
+        time.sleep(0.1)
+        if (axis.value < center_min):
+            track.value += shift
+            if track.value > range_max:
+                track.value = range_max
+        if (axis.value > centre_max):
+            track.value -= shift
+            if track.value < range_min:
+                track.value = range_min
 
 
 def aim_servos(pan, tilt):
@@ -103,12 +116,8 @@ def aim_servos(pan, tilt):
     signal.signal(signal.SIGINT, signal_handler)
 
     while True:
-        pan_val = pan.value
-        tilt_val = tilt.value
-        if pan_in_range(pan_val):
-            servos.set_servo_angle(0, pan_val)
-        if tilt_in_range(tilt_val):
-            servos.set_servo_angle(1, tilt_val)
+        servos.set_servo_angle(0, pan.value)
+        servos.set_servo_angle(1, tilt.value)
 
 
 if __name__ == '__main__':
@@ -140,20 +149,26 @@ if __name__ == '__main__':
         # PID panning
         # PID tilting
         # aim servos
-        process_track_object = Process(target=track_object, args=(obj_x, obj_y, centre_x, centre_y))
-        process_PID_pan = Process(target=pid_feed, args=(pan, panP, panI, panD, obj_x, centre_x))
-        process_PID_tilt = Process(target=pid_feed, args=(tilt, tiltP, tiltI, tiltD, obj_y, centre_y))
+        process_track_object = Process(target=track_object, args=(obj_x, obj_y, centre_x, centre_y, pan, tilt))
+        # process_PID_pan = Process(target=pid_feed, args=(pan, panP, panI, panD, obj_x, centre_x))
+        # process_PID_tilt = Process(target=pid_feed, args=(tilt, tiltP, tiltI, tiltD, obj_y, centre_y))
+        process_pan = Process(target=axis_map, args=(pan, obj_x, 130, 190, 0, 180))
+        process_tilt = Process(target=axis_map, args=(tilt, obj_y, 90, 150, 70, 180))
         process_aim_servos = Process(target=aim_servos, args=(pan, tilt))
 
         # Start all processes
         process_track_object.start()
         time.sleep(5)
-        process_PID_pan.start()
-        process_PID_tilt.start()
+        # process_PID_pan.start()
+        # process_PID_tilt.start()
+        process_pan.start()
+        process_tilt.start()
         process_aim_servos.start()
 
         # Join all processes
         process_track_object.join()
-        process_PID_pan.join()
-        process_PID_tilt.join()
+        # process_PID_pan.join()
+        # process_PID_tilt.join()
+        process_pan.join()
+        process_tilt.join()
         process_aim_servos.join()

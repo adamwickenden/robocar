@@ -45,8 +45,8 @@ if __name__ == '__main__':
 	pwm = Servo()
 	while True:
 		try:
-			pwm.set_servo_angle(0, 120)
-			pwm.set_servo_angle(1, 120)
+			pwm.set_servo_angle(0, 90)
+			pwm.set_servo_angle(1, 90)
 		except KeyboardInterrupt:
 			pwm.destroy()
 			print('\n Ended')
