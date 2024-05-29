@@ -1,3 +1,6 @@
 Applications/control/__pycache__/*.pyc
 Applications/__pycache__/*.pyc
 __pycache__/*.pyc
+
+*.pyc
+*.pyo

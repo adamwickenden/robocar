@@ -4,7 +4,7 @@ import busio
 from adafruit_motor import servo
 from adafruit_pca9685 import PCA9685
 
-from .data import servos
+from control.data import servos
 
 freq = 50
 active_servos = [0, 1]
