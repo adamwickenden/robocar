@@ -6,6 +6,8 @@ from adafruit_pca9685 import PCA9685
 
 from control.data import servos
 
+import time
+
 freq = 50
 active_servos = [0, 1]
 servo_range = [0, 180] # not needed as adafruit library handles this
@@ -35,19 +37,24 @@ class Servo:
 		else:
 			print(f"Incorrect servo channel passed, use {active_servos[0]}-{active_servos[1]}")
 
+	def scan_range(self, channel, start, end, step=1, sleep=0.01):
+		channel = int(channel)
+		if channel in active_servos:
+			for x in range(start, end + step, step):
+				self.servo_dict[channel].angle = x
+				time.sleep(sleep)
+		else:
+			print(f"Incorrect servo channel passed, use {active_servos[0]}-{active_servos[1]}")
+
 	def destroy(self):
 		for i in active_servos:
 			self.servo_dict[i].angle = 90
 
 
 if __name__ == '__main__':
-	print("Aligning all servos to 90°.")
 	pwm = Servo()
-	while True:
-		try:
-			pwm.set_servo_angle(0, 90)
-			pwm.set_servo_angle(1, 90)
-		except KeyboardInterrupt:
-			pwm.destroy()
-			print('\n Ended')
-			break
+	print("Scanning Horizontal Servo")
+	pwm.scan_range(0, 10, 170, 1)
+	print("Scanning Vertical Servo")
+	pwm.scan_range(1, 75, 170, 1)
+	pwm.destroy()

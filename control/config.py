@@ -1,6 +1,3 @@
-import os
 from pathlib import Path
 
-root = Path(os.sep.join(os.getcwd().split('/')[:-1]))
-apps = root / 'Applications'
-control = root / 'Applications' / 'control'
+package_root = Path(__file__).parent.resolve()

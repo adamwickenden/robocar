@@ -1,7 +1,7 @@
 from multiprocessing import Manager
 from multiprocessing import Process
 
-from imutils.video import VideoStream
+from picamera2 import Picamera2
 
 from control.servo import Servo
 from control.object_track import ObjectTrack
@@ -16,6 +16,12 @@ import sys
 
 # We use var.value as we need to acces variables like this for threading
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--display', action="store", dest='DISPLAY', default=False)
+args = parser.parse_args()
+
+print(args.DISPLAY)
+
 # Connect to servo control
 servos = Servo()
 
@@ -26,7 +32,6 @@ def signal_handler(sig, frame):
     servos.destroy()
     sys.exit()
 
-
 # Thread 1 object tracking
 def track_object(obj_x, obj_y, centre_x, centre_y, a,b):
     """
@@ -36,7 +41,9 @@ def track_object(obj_x, obj_y, centre_x, centre_y, a,b):
     signal.signal(signal.SIGINT, signal_handler)
 
     # Set up video stream
-    vs = VideoStream(usePiCamera=True).start()
+    picam2 = Picamera2()
+    picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
+    picam2.start()
     time.sleep(2.0)
 
     tracker = ObjectTrack()
@@ -44,7 +51,7 @@ def track_object(obj_x, obj_y, centre_x, centre_y, a,b):
     # Loop forever
     while True:
         # extract frame from video stream
-        img = vs.read()
+        img = picam2.capture_array()
 
         # get centre of img, we focus here if nobody is in frame
         (h, w) = img.shape[:2]
@@ -53,19 +60,21 @@ def track_object(obj_x, obj_y, centre_x, centre_y, a,b):
 
         # find object location
         ((obj_x.value, obj_y.value), rect) = tracker.update(img, (centre_x.value, centre_y.value))
+        print(obj_x.value, obj_y.value)
 
-        # draw rectangle on image if it exists
-        if rect is not None:
-            (x,y,w,h) = rect
-            cv2.rectangle(img, (x,y), (x+w, y+h), (0,255,0), 2)
+        if args.DISPLAY:
+            # draw rectangle on image if it exists
+            if rect is not None:
+                (x,y,w,h) = rect
+                cv2.rectangle(img, (x,y), (x+w, y+h), (0,255,0), 2)
 
-        cv2.putText(img, f'x:{obj_x.value}', (0,10), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
-        cv2.putText(img, f'pan: {a.value}', (0,25), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
-        cv2.putText(img, f'y:{obj_y.value}', (100, 10), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
-        cv2.putText(img, f'tilt:{b.value}', (100,25), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
-        
-        cv2.imshow("Object Tracking", img)
-        cv2.waitKey(1)
+            cv2.putText(img, f'x:{obj_x.value}', (0,10), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
+            cv2.putText(img, f'pan: {a.value}', (0,25), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
+            cv2.putText(img, f'y:{obj_y.value}', (100, 10), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
+            cv2.putText(img, f'tilt:{b.value}', (100,25), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,255), thickness=1)
+            
+            cv2.imshow("Object Tracking", img)
+            cv2.waitKey(1)
 
 
 # def pid_feed(out, p, i, d, obj, centre):

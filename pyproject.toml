@@ -16,10 +16,10 @@ adafruit-circuitpython-pca9685 = "^3.4.15"
 adafruit-circuitpython-pypixelbuf = "^2.2.8"
 adafruit-circuitpython-register = "^1.9.18"
 adafruit-circuitpython-servokit = "^1.3.17"
-pycamera = {extras = ["array"], version = "^0.3.2"}
 opencv-contrib-python = "^4.9.0.80"
 rpi-gpio = "^0.7.1"
 rpi-ws281x = "^5.0.0"
+picamera2 = "^0.3.18"
 
 
 [build-system]

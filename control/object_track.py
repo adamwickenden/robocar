@@ -1,9 +1,8 @@
-import imutils
 import cv2
 
-from .config import control
+from control.config import package_root
 
-haar = control / 'haar_face.xml'
+haar = package_root / 'haar_face.xml'
 
 class ObjectTrack():
     def __init__(self, haar=haar):

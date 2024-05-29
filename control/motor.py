@@ -36,7 +36,7 @@ class Motor:
 		for motor in self.motor_dict:
 			# To turn left we need to apply throttle on the right wheels
 			if 'R' in motor:
-				self.motor_dict[motor].throttle = power
+				self.motor_dict[motor].throttle = power * 2
 			else:
 				# set the opposite side to reverse
 				self.motor_dict[motor].throttle = -power
@@ -45,7 +45,7 @@ class Motor:
 		for motor in self.motor_dict:
 			# To turn right we need to apply throttle on the left wheels
 			if 'L' in motor:
-				self.motor_dict[motor].throttle = power
+				self.motor_dict[motor].throttle = power * 2
 			else:
 				# set the opposite side to reverse
 				self.motor_dict[motor].throttle = -power
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 	motors = Motor()
 	while True:
 		try:
-			motors.drive(0.5)
+			motors.drive(1)
 			time.sleep(1)
 			motors.drive(-0.5)
 			time.sleep(1)
